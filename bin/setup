@@ -4,13 +4,37 @@ set -u
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-version=${REDIS_BRANCH:-2.8}
+VERSION=${REDIS_BRANCH:-3.2}
+BINARIES="./versions/$VERSION/bin"
 
 for dir in logs pid tmp env; do
 	mkdir -p $dir
 done
 
 mkdir -p $OPENSHIFT_DATA_DIR/.redis/dbs
+
+if [ ! -d $BINARIES ]; then
+  set +e
+  rm -rf tmp/redis
+  mkdir tmp
+  set -e
+  
+  pushd tmp
+	
+  git clone https://github.com/antirez/redis -b $version
+	
+  cd redis
+  make
+  mkdir -p $binaries
+	
+  echo $(git rev-parse HEAD) > $binaries/.gitcommit
+  for file in src/redis-cli src/redis-server; do
+    cp -f $file $binaries
+  done
+  
+  popd
+  rm -rf tmp/redis
+fi
 
 echo $(pwd)/versions/$version/bin > env/OPENSHIFT_REDIS_PATH_ELEMENT
 
