@@ -5,7 +5,7 @@ set -u
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 VERSION=${REDIS_BRANCH:-3.2}
-BINARIES="./versions/$VERSION/bin"
+BINARIES="${OPENSHIFT_REDIS_DIR}/versions/$VERSION/bin"
 
 for dir in logs pid tmp env; do
 	mkdir -p $dir
@@ -28,16 +28,18 @@ if [ ! -d $BINARIES ]; then
   make
   mkdir -p $BINARIES
   
-  client_message "Done, copy binaries"
-	
+  client_message "Done, copy binaries to ${BINARIES}"
+  
   echo $(git rev-parse HEAD) > $BINARIES/.gitcommit
-  for file in src/redis-cli src/redis-server; do
-    cp -f $file $BINARIES
-  done
+  
+  cp -f src/redis-cli $BINARIES
+  cp -f src/redis-server $BINARIES
+  cp -f src/redis-sentinel $BINARIES
+	
   client_message "Done, cleanup"
   
   popd
-  rm -rf tmp/redis
+  #rm -rf tmp/redis
 fi
 
 echo $(pwd)/versions/$VERSION/bin > env/OPENSHIFT_REDIS_PATH_ELEMENT
