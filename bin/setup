@@ -14,6 +14,7 @@ done
 mkdir -p $OPENSHIFT_DATA_DIR/.redis/dbs
 
 if [ ! -d $BINARIES ]; then
+  client_message "Download and build redis ${VERSION}"
   set +e
   rm -rf tmp/redis
   mkdir tmp
@@ -26,11 +27,14 @@ if [ ! -d $BINARIES ]; then
   cd redis
   make
   mkdir -p $BINARIES
+  
+  client_message "Done, copy binaries"
 	
   echo $(git rev-parse HEAD) > $BINARIES/.gitcommit
   for file in src/redis-cli src/redis-server; do
     cp -f $file $BINARIES
   done
+  client_message "Done, cleanup"
   
   popd
   rm -rf tmp/redis
